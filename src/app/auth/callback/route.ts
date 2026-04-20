@@ -5,7 +5,13 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const next = url.searchParams.get("next") ?? "/dashboard";
+  const requestedNext = url.searchParams.get("next") ?? "/dashboard";
+  // Open-redirect guard: only allow same-origin, relative paths. `//evil.com`
+  // is rejected because it would be treated as a protocol-relative URL.
+  const next =
+    requestedNext.startsWith("/") && !requestedNext.startsWith("//")
+      ? requestedNext
+      : "/dashboard";
 
   if (code) {
     const supabase = await createClient();

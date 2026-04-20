@@ -3,7 +3,6 @@ import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendOrderReceipt } from "@/lib/email";
-import { env } from "@/lib/env";
 import { absoluteUrl } from "@/lib/utils";
 
 export const runtime = "nodejs";
@@ -70,25 +69,19 @@ async function handleCheckoutCompleted(
     })
     .eq("id", typed.id);
 
-  // Decrement inventory per line item.
+  // Decrement inventory per line item. Uses an atomic SQL RPC so concurrent
+  // webhook deliveries for the same product cannot lose a decrement.
   const { data: items } = await admin
     .from("order_items")
     .select("product_id, quantity")
     .eq("order_id", typed.id);
   for (const item of items ?? []) {
     if (!item.product_id) continue;
-    const { data: product } = await admin
-      .from("products")
-      .select("inventory")
-      .eq("id", item.product_id)
-      .maybeSingle();
-    if (!product) continue;
-    await admin
-      .from("products")
-      .update({
-        inventory: Math.max(0, product.inventory - item.quantity),
-      })
-      .eq("id", item.product_id);
+    const { error: rpcErr } = await admin.rpc("decrement_inventory", {
+      p_product_id: item.product_id,
+      p_qty: item.quantity,
+    });
+    if (rpcErr) console.error("[webhook] decrement_inventory failed", rpcErr);
   }
 
   const { data: receiptItems } = await admin
@@ -144,7 +137,7 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     );
   }
-  const secret = env.STRIPE_WEBHOOK_SECRET;
+  const secret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!secret) {
     return NextResponse.json(
       { error: "STRIPE_WEBHOOK_SECRET is not configured" },
