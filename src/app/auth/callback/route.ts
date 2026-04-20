@@ -6,12 +6,20 @@ export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const requestedNext = url.searchParams.get("next") ?? "/dashboard";
-  // Open-redirect guard: only allow same-origin, relative paths. `//evil.com`
-  // is rejected because it would be treated as a protocol-relative URL.
-  const next =
-    requestedNext.startsWith("/") && !requestedNext.startsWith("//")
-      ? requestedNext
-      : "/dashboard";
+  // Open-redirect guard. A simple `startsWith('/')` check isn't enough because
+  // the WHATWG URL parser normalises `\` to `/`, so `/%5Cevil.com` parses to
+  // `http://evil.com/`. Parse against the request origin and only accept the
+  // result if the resolved origin is unchanged — otherwise fall back to the
+  // dashboard.
+  let next = "/dashboard";
+  try {
+    const resolved = new URL(requestedNext, url);
+    if (resolved.origin === url.origin) {
+      next = resolved.pathname + resolved.search + resolved.hash;
+    }
+  } catch {
+    // Malformed URL — keep the default.
+  }
 
   if (code) {
     const supabase = await createClient();
