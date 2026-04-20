@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { env } from "@/lib/env";
 
 // Refresh the Supabase auth session cookie on every request so Server Components
 // always see a fresh access token. Called from proxy.ts (Next.js 16 proxy).
@@ -7,8 +8,8 @@ export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    env.SUPABASE_URL,
+    env.SUPABASE_ANON_KEY,
     {
       cookies: {
         getAll() {

@@ -85,6 +85,9 @@ export async function upgradePlanAction(formData: FormData) {
     success_url: absoluteUrl(`/dashboard/billing?success=1`),
     cancel_url: absoluteUrl(`/dashboard/billing`),
     metadata: { tenant_id: tenant.id, plan },
+    subscription_data: {
+      metadata: { tenant_id: tenant.id, plan },
+    },
   });
   if (!session.url) throw new Error("Stripe did not return a checkout URL.");
   redirect(session.url);

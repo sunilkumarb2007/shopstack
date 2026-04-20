@@ -98,9 +98,9 @@ export default async function ProductDetailPage({
                 imageUrl: product.image_url,
               }}
               tenantSlug={slug}
-              disabled={product.inventory <= 0}
+              disabled={product.track_inventory && product.inventory <= 0}
             />
-            {product.inventory <= 0 && (
+            {product.track_inventory && product.inventory <= 0 && (
               <p className="mt-2 text-xs text-destructive">Out of stock</p>
             )}
           </div>
