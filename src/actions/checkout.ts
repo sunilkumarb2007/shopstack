@@ -53,7 +53,12 @@ export async function createCheckoutSession(input: {
   for (const line of input.lines) {
     const p = products.find((pp) => pp.id === line.productId);
     if (!p || p.status !== "published") continue;
-    const qty = Math.min(line.quantity, Math.max(0, p.inventory));
+    // Products without inventory tracking are treated as unlimited stock.
+    // Products that track inventory are clamped to the available amount
+    // (and skipped entirely if they're out of stock).
+    const qty = p.track_inventory
+      ? Math.min(line.quantity, Math.max(0, p.inventory))
+      : line.quantity;
     if (qty <= 0) continue;
     items.push({
       product_id: p.id,

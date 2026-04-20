@@ -64,6 +64,7 @@ export type Product = {
   currency: string;
   image_url: string | null;
   inventory: number;
+  track_inventory: boolean;
   status: ProductStatus;
   created_at: string;
   updated_at: string;

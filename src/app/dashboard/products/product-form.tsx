@@ -119,6 +119,15 @@ export function ProductForm({
             defaultValue={product?.inventory ?? 0}
             className="mt-1"
           />
+          <label className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+            <input
+              type="checkbox"
+              name="track_inventory"
+              defaultChecked={product?.track_inventory ?? false}
+              className="size-4"
+            />
+            Track inventory (uncheck for unlimited stock)
+          </label>
         </div>
         <div>
           <Label htmlFor="status">Status</Label>
