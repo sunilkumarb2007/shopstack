@@ -15,15 +15,21 @@ export const env = {
     );
   },
   get SUPABASE_ANON_KEY() {
+    // Supabase renamed the anon key to "publishable key" in late 2024. We
+    // accept either env var name for backward compatibility.
     return required(
-      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     );
   },
   get SUPABASE_SERVICE_ROLE_KEY() {
+    // Supabase renamed the service_role key to "secret key" (sb_secret_...)
+    // in late 2024. We accept either env var name.
     return required(
-      "SUPABASE_SERVICE_ROLE_KEY",
-      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      "SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SECRET_KEY",
+      process.env.SUPABASE_SERVICE_ROLE_KEY ??
+        process.env.SUPABASE_SECRET_KEY,
     );
   },
   get STRIPE_SECRET_KEY() {
